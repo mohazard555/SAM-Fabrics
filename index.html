@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAM Pro – Fabric Cost Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+      // To prevent FOUC, this script should run before the body renders.
+      if (localStorage.getItem('sam-pro-theme') === 'dark' || (!('sam-pro-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    </script>
+    <style>
+      html {
+        font-size: 18px;
+      }
+      body {
+        font-family: 'Tajawal', sans-serif;
+      }
+      /* Light mode styles for inputs */
+      input[type="text"], input[type="date"], input[type="number"], select, textarea, input[type="url"], input[type="password"] {
+        background-color: #f9fafb; /* Corresponds to Tailwind's gray-50 */
+        color: #1f2937; /* Corresponds to Tailwind's gray-800 */
+        border-color: #d1d5db; /* Corresponds to Tailwind's gray-300 */
+      }
+      select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: left 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        padding-left: 1rem;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        color: #1f2937 !important; /* Ensure selected text is dark */
+      }
+       input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.5);
+      }
+      ::placeholder {
+        color: #9ca3af; /* Corresponds to Tailwind's gray-400 */
+        opacity: 1;
+      }
+      
+      /* Dark mode styles for inputs */
+      .dark input[type="text"], .dark input[type="date"], .dark input[type="number"], .dark select, .dark textarea, .dark input[type="url"], .dark input[type="password"] {
+        background-color: #374151; /* gray-700 */
+        color: #f9fafb; /* gray-50 */
+        border-color: #4b5563; /* gray-600 */
+      }
+      .dark select {
+         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+         color: #f9fafb !important;
+      }
+      .dark input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+      }
+      .dark ::placeholder {
+        color: #6b7280; /* gray-500 */
+      }
+      /* End of new styles */
+      @media print {
+        /* Reset dark mode for printing */
+        html.dark {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          background-color: white !important;
+          color: black !important;
+        }
+        .dark body, .dark #print-area {
+            background-color: white !important;
+            color: black !important;
+        }
+        .dark #print-area *, .dark #print-area h1, .dark #print-area p, .dark #print-area th, .dark #print-area td {
+            color: black !important;
+        }
+        .dark thead {
+             background-color: #eee !important;
+        }
+
+        body * {
+          visibility: hidden;
+        }
+        #print-area, #print-area * {
+          visibility: visible;
+        }
+        #print-area {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        .no-print {
+          display: none !important;
+        }
+        /* ADDED FOR BETTER TABLES */
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            font-size: 10pt; /* Smaller font for printing */
+        }
+        th, td {
+            border: 1px solid #ccc !important;
+            padding: 6px !important;
+            text-align: right !important;
+        }
+        thead {
+            background-color: #eee !important;
+            -webkit-print-color-adjust: exact !important; /* Chrome, Safari */
+            color-adjust: exact !important; /* Firefox */
+        }
+        tr {
+            page-break-inside: avoid;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            page-break-after: avoid;
+        }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
+    "vite": "https://aistudiocdn.com/vite@^7.1.11",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.4",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.546.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>
