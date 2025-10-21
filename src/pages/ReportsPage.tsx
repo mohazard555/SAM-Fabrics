@@ -116,7 +116,7 @@ const ReportsPage: React.FC = () => {
     
     const renderReportContent = () => (
         <>
-            <div className="h-80 my-8 text-xs">
+            <div className="h-80 my-8 text-xs no-print">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={groupedData}>
                         <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />

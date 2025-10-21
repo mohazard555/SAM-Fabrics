@@ -132,6 +132,8 @@ const DailyReportPage: React.FC = () => {
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
             <tr>
               <th scope="col" className="px-4 py-3">تاريخ التقرير</th>
+               {isPrint && <th scope="col" className="px-4 py-3">بدء التشغيل</th>}
+               {isPrint && <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>}
               <th scope="col" className="px-4 py-3">الباركود</th>
               <th scope="col" className="px-4 py-3">الموديل</th>
               <th scope="col" className="px-4 py-3">القماش</th>
@@ -140,7 +142,7 @@ const DailyReportPage: React.FC = () => {
               <th scope="col" className="px-4 py-3">الفئة</th>
               <th scope="col" className="px-4 py-3">الموسم</th>
               <th scope="col" className="px-4 py-3">الكمية المستخدمة</th>
-              <th scope="col" className="px-4 py-3">الكمية المصنعة</th>
+              <th scope="col" className="px-4 py-3">الكمية المصنّعة</th>
               <th scope="col" className="px-4 py-3">الكمية المباعة</th>
               {!isPrint && <th scope="col" className="px-4 py-3">إجراءات</th>}
             </tr>
@@ -149,6 +151,8 @@ const DailyReportPage: React.FC = () => {
             {reportsToRender.map(report => (
               <tr key={report.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td className="px-4 py-4">{report.reportDate}</td>
+                {isPrint && <td className="px-4 py-4">{report.startDate}</td>}
+                {isPrint && <td className="px-4 py-4">{report.endDate}</td>}
                 <td className="px-4 py-4">{getNameById(barcodes, report.barcodeId)}</td>
                 <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById(models, report.modelId)}</td>
                 <td className="px-4 py-4">{getNameById(fabrics, report.fabricId)}</td>
@@ -195,9 +199,21 @@ const DailyReportPage: React.FC = () => {
                 <div><label className={labelClass}>الفئة</label><select name="categoryId" value={formState.categoryId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
                 <div><label className={labelClass}>الموسم</label><select name="seasonId" value={formState.seasonId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
 
-                <div><label className={labelClass}>الكمية المستخدمة</label><input type="number" name="quantityUsed" value={formState.quantityUsed} onChange={handleInputChange} className={inputClass} required /></div>
-                <div><label className={labelClass}>الكمية المصنّعة</label><input type="number" name="quantityManufactured" value={formState.quantityManufactured} onChange={handleInputChange} className={inputClass} required /></div>
-                <div><label className={labelClass}>الكمية المباعة</label><input type="number" name="quantitySold" value={formState.quantitySold} onChange={handleInputChange} className={inputClass} required /></div>
+                <div className="relative">
+                  <label className={labelClass}>الكمية المستخدمة</label>
+                  <input type="number" name="quantityUsed" value={formState.quantityUsed} onChange={handleInputChange} className={inputClass} required />
+                  <span className="absolute left-3 top-1/2 mt-3 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">متر</span>
+                </div>
+                <div className="relative">
+                  <label className={labelClass}>الكمية المصنّعة</label>
+                  <input type="number" name="quantityManufactured" value={formState.quantityManufactured} onChange={handleInputChange} className={inputClass} required />
+                  <span className="absolute left-3 top-1/2 mt-3 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">عدد</span>
+                </div>
+                <div className="relative">
+                  <label className={labelClass}>الكمية المباعة</label>
+                  <input type="number" name="quantitySold" value={formState.quantitySold} onChange={handleInputChange} className={inputClass} required />
+                  <span className="absolute left-3 top-1/2 mt-3 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">عدد</span>
+                </div>
                 
                 <div className="sm:col-span-2 md:col-span-3 lg:col-span-4"><label className={labelClass}>ملاحظات أخرى</label><textarea name="notes" value={formState.notes || ''} onChange={handleInputChange} rows={3} className={inputClass}></textarea></div>
 

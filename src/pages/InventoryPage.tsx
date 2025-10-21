@@ -27,6 +27,7 @@ const InventoryPage: React.FC = () => {
 
   const filteredReports = useMemo(() => {
     return dailyReports.filter(report => {
+        if (!searchTerm) return true;
         const model = getNameById(models, report.modelId);
         const color = getNameById(colors, report.colorId);
         const fabric = getNameById(fabrics, report.fabricId);
@@ -55,8 +56,6 @@ const InventoryPage: React.FC = () => {
   const handleExport = () => {
       const dataToExport = filteredReports.map(report => ({
         'تاريخ التقرير': report.reportDate,
-        'بدء التشغيل': report.startDate,
-        'انتهاء التشغيل': report.endDate,
         'الباركود': getNameById(barcodes, report.barcodeId),
         'الموديل': getNameById(models, report.modelId),
         'القماش': getNameById(fabrics, report.fabricId),
@@ -87,7 +86,7 @@ const InventoryPage: React.FC = () => {
               <th scope="col" className="px-4 py-3">الفئة</th>
               <th scope="col" className="px-4 py-3">الموسم</th>
               <th scope="col" className="px-4 py-3">الكمية المستخدمة</th>
-              <th scope="col" className="px-4 py-3">الكمية المصنعة</th>
+              <th scope="col" className="px-4 py-3">الكمية المصنّعة</th>
               <th scope="col" className="px-4 py-3">الكمية المباعة</th>
               <th scope="col" className="px-4 py-3">الرصيد</th>
             </tr>
