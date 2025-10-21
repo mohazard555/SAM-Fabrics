@@ -174,6 +174,11 @@ const ReportsPage: React.FC = () => {
                         <th scope="col" className="px-4 py-3">الباركود</th>
                         <th scope="col" className="px-4 py-3">اللون</th>
                         <th scope="col" className="px-4 py-3">المقاس</th>
+                        <th scope="col" className="px-4 py-3">القماش</th>
+                        <th scope="col" className="px-4 py-3">الفئة</th>
+                        <th scope="col" className="px-4 py-3">الموسم</th>
+                        <th scope="col" className="px-4 py-3">نوع المادة</th>
+                        <th scope="col" className="px-4 py-3">الكمية المستخدمة</th>
                         <th scope="col" className="px-4 py-3">الكمية المصنعة</th>
                         <th scope="col" className="px-4 py-3">الكمية المباعة</th>
                     </tr>
@@ -188,6 +193,11 @@ const ReportsPage: React.FC = () => {
                             <td className="px-4 py-4">{getNameById('barcode', report.barcodeId)}</td>
                             <td className="px-4 py-4">{getNameById('color', report.colorId)}</td>
                             <td className="px-4 py-4">{getNameById('size', report.sizeId)}</td>
+                            <td className="px-4 py-4">{getNameById('fabric', report.fabricId)}</td>
+                            <td className="px-4 py-4">{getNameById('category', report.categoryId)}</td>
+                            <td className="px-4 py-4">{getNameById('season', report.seasonId)}</td>
+                            <td className="px-4 py-4">{getNameById('materialType', report.materialTypeId)}</td>
+                            <td className="px-4 py-4">{report.quantityUsed}</td>
                             <td className="px-4 py-4">{report.quantityManufactured}</td>
                             <td className="px-4 py-4">{report.quantitySold}</td>
                         </tr>

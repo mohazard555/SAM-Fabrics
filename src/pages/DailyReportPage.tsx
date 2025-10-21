@@ -132,17 +132,15 @@ const DailyReportPage: React.FC = () => {
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
             <tr>
               <th scope="col" className="px-4 py-3">تاريخ التقرير</th>
-               {isPrint && <th scope="col" className="px-4 py-3">بدء التشغيل</th>}
-               {isPrint && <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>}
+              <th scope="col" className="px-4 py-3">بدء التشغيل</th>
+              <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>
+              <th scope="col" className="px-4 py-3">نوع المادة</th>
               <th scope="col" className="px-4 py-3">الباركود</th>
               <th scope="col" className="px-4 py-3">الموديل</th>
               <th scope="col" className="px-4 py-3">القماش</th>
               <th scope="col" className="px-4 py-3">اللون</th>
               <th scope="col" className="px-4 py-3">المقاس</th>
-              <th scope="col" className="px-4 py-3">الفئة</th>
-              <th scope="col" className="px-4 py-3">الموسم</th>
-              <th scope="col" className="px-4 py-3">الكمية المستخدمة</th>
-              <th scope="col" className="px-4 py-3">الكمية المصنّعة</th>
+              <th scope="col" className="px-4 py-3">الكمية المصنعة</th>
               <th scope="col" className="px-4 py-3">الكمية المباعة</th>
               {!isPrint && <th scope="col" className="px-4 py-3">إجراءات</th>}
             </tr>
@@ -151,16 +149,14 @@ const DailyReportPage: React.FC = () => {
             {reportsToRender.map(report => (
               <tr key={report.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td className="px-4 py-4">{report.reportDate}</td>
-                {isPrint && <td className="px-4 py-4">{report.startDate}</td>}
-                {isPrint && <td className="px-4 py-4">{report.endDate}</td>}
+                <td className="px-4 py-4">{report.startDate}</td>
+                <td className="px-4 py-4">{report.endDate}</td>
+                <td className="px-4 py-4">{getNameById(materialTypes, report.materialTypeId)}</td>
                 <td className="px-4 py-4">{getNameById(barcodes, report.barcodeId)}</td>
                 <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById(models, report.modelId)}</td>
                 <td className="px-4 py-4">{getNameById(fabrics, report.fabricId)}</td>
                 <td className="px-4 py-4">{getNameById(colors, report.colorId)}</td>
                 <td className="px-4 py-4">{getNameById(sizes, report.sizeId)}</td>
-                <td className="px-4 py-4">{getNameById(categories, report.categoryId)}</td>
-                <td className="px-4 py-4">{getNameById(seasons, report.seasonId)}</td>
-                <td className="px-4 py-4">{report.quantityUsed}</td>
                 <td className="px-4 py-4">{report.quantityManufactured}</td>
                 <td className="px-4 py-4">{report.quantitySold}</td>
                 {!isPrint && (
@@ -181,7 +177,7 @@ const DailyReportPage: React.FC = () => {
 
   return (
     <div>
-        {isPrinting && <PrintWrapper title="التقرير اليومي للإنتاج والمبيعات">{renderTable(true, filteredReports)}</PrintWrapper>}
+        {isPrinting && <PrintWrapper title="التقرير اليومي للإنتاج والمبيعات">{renderTable(true, dailyReports)}</PrintWrapper>}
         <div className={isPrinting ? 'hidden' : ''}>
             <Card title={isEditing ? "تعديل السجل" : "إضافة سجل جديد"}>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-5">
