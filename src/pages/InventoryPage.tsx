@@ -26,7 +26,6 @@ const InventoryPage: React.FC = () => {
   const getNameById = (collection: {id: string, name: string}[], id: string) => collection.find(item => item.id === id)?.name || 'غير محدد';
 
   const filteredReports = useMemo(() => {
-    if (!searchTerm) return dailyReports;
     return dailyReports.filter(report => {
         const model = getNameById(models, report.modelId);
         const color = getNameById(colors, report.colorId);
@@ -80,12 +79,14 @@ const InventoryPage: React.FC = () => {
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
             <tr>
               <th scope="col" className="px-4 py-3">تاريخ التقرير</th>
-              <th scope="col" className="px-4 py-3">بدء التشغيل</th>
-              <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>
               <th scope="col" className="px-4 py-3">الباركود</th>
               <th scope="col" className="px-4 py-3">الموديل</th>
+              <th scope="col" className="px-4 py-3">القماش</th>
               <th scope="col" className="px-4 py-3">اللون</th>
               <th scope="col" className="px-4 py-3">المقاس</th>
+              <th scope="col" className="px-4 py-3">الفئة</th>
+              <th scope="col" className="px-4 py-3">الموسم</th>
+              <th scope="col" className="px-4 py-3">الكمية المستخدمة</th>
               <th scope="col" className="px-4 py-3">الكمية المصنعة</th>
               <th scope="col" className="px-4 py-3">الكمية المباعة</th>
               <th scope="col" className="px-4 py-3">الرصيد</th>
@@ -95,12 +96,14 @@ const InventoryPage: React.FC = () => {
             {reportsToRender.map(report => (
               <tr key={report.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td className="px-4 py-4">{report.reportDate}</td>
-                <td className="px-4 py-4">{report.startDate}</td>
-                <td className="px-4 py-4">{report.endDate}</td>
                 <td className="px-4 py-4">{getNameById(barcodes, report.barcodeId)}</td>
                 <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById(models, report.modelId)}</td>
+                <td className="px-4 py-4">{getNameById(fabrics, report.fabricId)}</td>
                 <td className="px-4 py-4">{getNameById(colors, report.colorId)}</td>
                 <td className="px-4 py-4">{getNameById(sizes, report.sizeId)}</td>
+                <td className="px-4 py-4">{getNameById(categories, report.categoryId)}</td>
+                <td className="px-4 py-4">{getNameById(seasons, report.seasonId)}</td>
+                <td className="px-4 py-4">{report.quantityUsed}</td>
                 <td className="px-4 py-4">{report.quantityManufactured}</td>
                 <td className="px-4 py-4">{report.quantitySold}</td>
                 <td className="px-4 py-4 font-bold text-gray-800 dark:text-gray-100">{report.quantityManufactured - report.quantitySold}</td>
@@ -113,7 +116,7 @@ const InventoryPage: React.FC = () => {
 
   return (
     <div>
-      {isPrinting && <PrintWrapper title="تقرير المخزون الكامل">{renderTable(true, dailyReports)}</PrintWrapper>}
+      {isPrinting && <PrintWrapper title="تقرير المخزون الكامل">{renderTable(true, filteredReports)}</PrintWrapper>}
       <div className={isPrinting ? 'hidden' : ''}>
         <Card>
           <div className="flex justify-between items-center mb-4">

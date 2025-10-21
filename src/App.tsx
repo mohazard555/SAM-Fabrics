@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Database, FileText, Settings, BarChart2, Layers, Archive, Info } from 'lucide-react';
+import { Database, FileText, Settings, BarChart2, Layers, Archive, Info, BarChart3 } from 'lucide-react';
 import DailyReportPage from './pages/DailyReportPage';
 import MastersPage from './pages/MastersPage';
 import ReportsPage from './pages/ReportsPage';
@@ -9,8 +9,9 @@ import InventoryPage from './pages/InventoryPage';
 import AboutPage from './pages/AboutPage';
 import { useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
+import AdvancedReportsPage from './pages/AdvancedReportsPage';
 
-type Page = 'daily-report' | 'masters' | 'reports' | 'settings' | 'inventory' | 'about';
+type Page = 'daily-report' | 'masters' | 'reports' | 'advanced-reports' | 'settings' | 'inventory' | 'about';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('daily-report');
@@ -28,6 +29,8 @@ const App: React.FC = () => {
         return <MastersPage />;
       case 'reports':
         return <ReportsPage />;
+      case 'advanced-reports':
+        return <AdvancedReportsPage />;
       case 'inventory':
         return <InventoryPage />;
       case 'settings':
@@ -66,6 +69,7 @@ const App: React.FC = () => {
           <NavItem page="daily-report" icon={<FileText size={20} />} label="التقرير اليومي" />
           <NavItem page="masters" icon={<Layers size={20} />} label="القوائم المرجعية" />
           <NavItem page="reports" icon={<BarChart2 size={20} />} label="التقارير" />
+          <NavItem page="advanced-reports" icon={<BarChart3 size={20} />} label="التقارير المطورة" />
           <NavItem page="inventory" icon={<Archive size={20} />} label="المخزون" />
           <NavItem page="settings" icon={<Settings size={20} />} label="الإعدادات" />
           <NavItem page="about" icon={<Info size={20} />} label="حول" />
