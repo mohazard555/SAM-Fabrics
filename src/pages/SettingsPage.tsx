@@ -4,6 +4,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import type { UserSettings, AppData, User, Permissions } from '../types';
 import { Save, Download, Upload, Plus, Edit, Trash2, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const EMPTY_USER: Omit<User, 'id'> = {
   name: '',
@@ -20,9 +21,16 @@ const EMPTY_USER: Omit<User, 'id'> = {
 
 const SettingsPage: React.FC = () => {
   const { data, setData, addOrUpdateItem, deleteItem } = useData();
+  const { currentUser, login } = useAuth();
   const [settings, setSettings] = useState<UserSettings>(data.settings);
   const [userForm, setUserForm] = useState<Partial<User> | null>(null);
   const importFileRef = useRef<HTMLInputElement>(null);
+
+  const [newUsername, setNewUsername] = useState(currentUser?.username || '');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [credentialError, setCredentialError] = useState('');
+
 
   useEffect(() => {
     setSettings(data.settings);
@@ -149,6 +157,45 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  const handleSaveCredentials = () => {
+    setCredentialError('');
+    if (!currentUser) return;
+
+    if (newPassword && newPassword !== confirmPassword) {
+      setCredentialError('كلمتا المرور غير متطابقتين.');
+      return;
+    }
+    
+    if (confirmPassword && !newPassword) {
+        setCredentialError('يرجى ملء حقل كلمة المرور الجديدة أولاً.');
+        return;
+    }
+
+    if (data.users.some(user => user.username === newUsername && user.id !== currentUser.id)) {
+      setCredentialError('اسم المستخدم هذا مستخدم بالفعل.');
+      return;
+    }
+
+    const originalUser = data.users.find(u => u.id === currentUser.id);
+    if (!originalUser) {
+        setCredentialError('حدث خطأ: لم يتم العثور على المستخدم.');
+        return;
+    }
+
+    const userToSave: User = {
+      ...originalUser,
+      username: newUsername,
+      ...(newPassword && { password: newPassword }),
+    };
+
+    addOrUpdateItem('users', userToSave);
+    login(userToSave); 
+
+    alert('تم تحديث بيانات تسجيل الدخول بنجاح!');
+    setNewPassword('');
+    setConfirmPassword('');
+  };
+
 
   const inputClass = "mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3";
   const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300";
@@ -180,6 +227,45 @@ const SettingsPage: React.FC = () => {
         </div>
       </Card>
       
+      <Card title="تغيير اسم المستخدم وكلمة المرور">
+        <div className="space-y-4">
+          <div>
+            <label className={labelClass}>اسم المستخدم</label>
+            <input 
+              type="text" 
+              value={newUsername} 
+              onChange={(e) => setNewUsername(e.target.value)} 
+              className={inputClass} 
+            />
+          </div>
+          <div>
+            <label className={labelClass}>كلمة المرور الجديدة</label>
+            <input 
+              type="password" 
+              value={newPassword} 
+              onChange={(e) => setNewPassword(e.target.value)} 
+              className={inputClass} 
+              placeholder="اتركها فارغة لعدم التغيير"
+              autoComplete="new-password"
+            />
+          </div>
+          <div>
+            <label className={labelClass}>تأكيد كلمة المرور الجديدة</label>
+            <input 
+              type="password" 
+              value={confirmPassword} 
+              onChange={(e) => setConfirmPassword(e.target.value)} 
+              className={inputClass} 
+              autoComplete="new-password"
+            />
+          </div>
+          {credentialError && <p className="text-sm text-red-600 dark:text-red-400">{credentialError}</p>}
+        </div>
+        <div className="flex justify-end mt-6">
+          <Button onClick={handleSaveCredentials} icon={<Save size={18}/>}>حفظ التغييرات</Button>
+        </div>
+      </Card>
+
       <Card title="إدارة المستخدمين">
         <div className="flex justify-end mb-4">
           <Button onClick={() => handleOpenUserForm()} icon={<Plus size={16} />}>إضافة مستخدم جديد</Button>
