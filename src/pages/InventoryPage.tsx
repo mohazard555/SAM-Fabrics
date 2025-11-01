@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import Card from '../components/Card';
@@ -9,7 +10,7 @@ import PrintWrapper from '../components/PrintWrapper';
 
 const InventoryPage: React.FC = () => {
   const { data } = useData();
-  const { dailyReports, colors, models, fabrics, sizes, categories, seasons, barcodes } = data;
+  const { dailyReports, colors, models, fabrics, sizes, categories, seasons, barcodes, materialTypes } = data;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isPrinting, setIsPrinting] = useState(false);
@@ -36,6 +37,9 @@ const InventoryPage: React.FC = () => {
         const season = getNameById(seasons, report.seasonId);
         const barcode = getNameById(barcodes, report.barcodeId);
         const searchTermLower = searchTerm.toLowerCase();
+        const materialsMatch = (report.materialsUsed || []).some(m => 
+            getNameById(materialTypes, m.materialTypeId).toLowerCase().includes(searchTermLower)
+        );
 
         return model.toLowerCase().includes(searchTermLower) ||
                color.toLowerCase().includes(searchTermLower) ||
@@ -45,9 +49,10 @@ const InventoryPage: React.FC = () => {
                season.toLowerCase().includes(searchTermLower) ||
                barcode.toLowerCase().includes(searchTermLower) ||
                report.reportDate.includes(searchTermLower) ||
-               (report.notes || '').toLowerCase().includes(searchTermLower);
+               (report.notes || '').toLowerCase().includes(searchTermLower) ||
+               materialsMatch;
     });
-  }, [dailyReports, searchTerm, models, colors, fabrics, sizes, categories, seasons, barcodes]);
+  }, [dailyReports, searchTerm, models, colors, fabrics, sizes, categories, seasons, barcodes, materialTypes]);
 
   const handlePrint = () => {
       setIsPrinting(true);
@@ -63,7 +68,7 @@ const InventoryPage: React.FC = () => {
         'المقاس': getNameById(sizes, report.sizeId),
         'الفئة': getNameById(categories, report.categoryId),
         'الموسم': getNameById(seasons, report.seasonId),
-        'الكمية المستخدمة': report.quantityUsed,
+        'المواد المستخدمة': (report.materialsUsed || []).map(m => `${getNameById(materialTypes, m.materialTypeId)}: ${m.quantityUsed} متر`).join(' | '),
         'الكمية المصنّعة': report.quantityManufactured,
         'الكمية المباعة': report.quantitySold,
         'الرصيد': report.quantityManufactured - report.quantitySold,
@@ -80,15 +85,11 @@ const InventoryPage: React.FC = () => {
               <th scope="col" className="px-4 py-3">تاريخ التقرير</th>
               <th scope="col" className="px-4 py-3">الباركود</th>
               <th scope="col" className="px-4 py-3">الموديل</th>
-              <th scope="col" className="px-4 py-3">القماش</th>
-              <th scope="col" className="px-4 py-3">اللون</th>
-              <th scope="col" className="px-4 py-3">المقاس</th>
-              <th scope="col" className="px-4 py-3">الفئة</th>
-              <th scope="col" className="px-4 py-3">الموسم</th>
-              <th scope="col" className="px-4 py-3">الكمية المستخدمة</th>
+              <th scope="col" className="px-4 py-3">المواد المستخدمة</th>
               <th scope="col" className="px-4 py-3">الكمية المصنّعة</th>
               <th scope="col" className="px-4 py-3">الكمية المباعة</th>
               <th scope="col" className="px-4 py-3">الرصيد</th>
+              {isPrint && <th scope="col" className="px-4 py-3">ملاحظات</th>}
             </tr>
           </thead>
           <tbody>
@@ -97,15 +98,17 @@ const InventoryPage: React.FC = () => {
                 <td className="px-4 py-4">{report.reportDate}</td>
                 <td className="px-4 py-4">{getNameById(barcodes, report.barcodeId)}</td>
                 <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById(models, report.modelId)}</td>
-                <td className="px-4 py-4">{getNameById(fabrics, report.fabricId)}</td>
-                <td className="px-4 py-4">{getNameById(colors, report.colorId)}</td>
-                <td className="px-4 py-4">{getNameById(sizes, report.sizeId)}</td>
-                <td className="px-4 py-4">{getNameById(categories, report.categoryId)}</td>
-                <td className="px-4 py-4">{getNameById(seasons, report.seasonId)}</td>
-                <td className="px-4 py-4">{report.quantityUsed}</td>
+                <td className="px-4 py-4">
+                  {(report.materialsUsed || []).map((m, index) => (
+                    <div key={index} className="whitespace-nowrap text-xs">
+                      {getNameById(materialTypes, m.materialTypeId)}: <strong>{m.quantityUsed}</strong> متر
+                    </div>
+                  ))}
+                </td>
                 <td className="px-4 py-4">{report.quantityManufactured}</td>
                 <td className="px-4 py-4">{report.quantitySold}</td>
                 <td className="px-4 py-4 font-bold text-gray-800 dark:text-gray-100">{report.quantityManufactured - report.quantitySold}</td>
+                {isPrint && <td className="px-4 py-4">{report.notes || '-'}</td>}
               </tr>
             ))}
           </tbody>

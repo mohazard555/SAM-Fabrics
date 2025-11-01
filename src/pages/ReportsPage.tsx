@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import Card from '../components/Card';
@@ -49,6 +50,24 @@ const ReportsPage: React.FC = () => {
     }, [data.dailyReports, dateFrom, dateTo]);
 
     const groupedData = useMemo(() => {
+        if (groupBy === 'materialTypeId') {
+            const materialTotals = filteredReports.reduce<Record<string, { name: string, quantityUsed: number, quantityManufactured: number, quantitySold: number }>>((acc, report) => {
+                (report.materialsUsed || []).forEach(mu => {
+                    if (!acc[mu.materialTypeId]) {
+                        acc[mu.materialTypeId] = {
+                            name: getNameById('materialType', mu.materialTypeId),
+                            quantityUsed: 0,
+                            quantityManufactured: 0, 
+                            quantitySold: 0, 
+                        };
+                    }
+                    acc[mu.materialTypeId].quantityUsed += mu.quantityUsed;
+                });
+                return acc;
+            }, {});
+            return Object.values(materialTotals);
+        }
+
         const result = filteredReports.reduce((acc, report) => {
             const key = report[groupBy];
             if (!acc[key]) {
@@ -59,7 +78,7 @@ const ReportsPage: React.FC = () => {
                     quantitySold: 0,
                 };
             }
-            acc[key].quantityUsed += report.quantityUsed;
+            acc[key].quantityUsed += (report.materialsUsed || []).reduce((sum, m) => sum + m.quantityUsed, 0);
             acc[key].quantityManufactured += report.quantityManufactured;
             acc[key].quantitySold += report.quantitySold;
             return acc;
@@ -75,12 +94,17 @@ const ReportsPage: React.FC = () => {
         }, 100);
     };
 
-    const handleExportGrouped = () => exportToExcel(`report-grouped-by-${groupBy}`, groupedData.map(d => ({
-        [masterLabels[groupBy]]: d.name,
-        'إجمالي المستخدم': d.quantityUsed,
-        'إجمالي المصنّع': d.quantityManufactured,
-        'إجمالي المباع': d.quantitySold
-    })));
+    const handleExportGrouped = () => exportToExcel(`report-grouped-by-${groupBy}`, groupedData.map(d => {
+        const row: any = {
+            [masterLabels[groupBy]]: d.name,
+            'إجمالي المستخدم': d.quantityUsed,
+        };
+        if (groupBy !== 'materialTypeId') {
+            row['إجمالي المصنّع'] = d.quantityManufactured;
+            row['إجمالي المباع'] = d.quantitySold;
+        }
+        return row;
+    }));
     
     const handleExportDetails = () => {
         const dataToExport = filteredReports.map(report => ({
@@ -94,7 +118,7 @@ const ReportsPage: React.FC = () => {
             'المقاس': getNameById('size', report.sizeId),
             'الفئة': getNameById('category', report.categoryId),
             'الموسم': getNameById('season', report.seasonId),
-            'الكمية المستخدمة': report.quantityUsed,
+            'المواد المستخدمة': (report.materialsUsed || []).map(m => `${getNameById('materialType', m.materialTypeId)}: ${m.quantityUsed} متر`).join(' | '),
             'الكمية المصنّعة': report.quantityManufactured,
             'الكمية المباعة': report.quantitySold,
             'ملاحظات': report.notes || '',
@@ -131,8 +155,8 @@ const ReportsPage: React.FC = () => {
                         />
                         <Legend wrapperStyle={{ color: 'var(--text-color)' }} />
                         <Bar dataKey="quantityUsed" fill="#8884d8" name="المستخدم" />
-                        <Bar dataKey="quantityManufactured" fill="#82ca9d" name="المصنّع" />
-                        <Bar dataKey="quantitySold" fill="#ffc658" name="المباع" />
+                        {groupBy !== 'materialTypeId' && <Bar dataKey="quantityManufactured" fill="#82ca9d" name="المصنّع" />}
+                        {groupBy !== 'materialTypeId' && <Bar dataKey="quantitySold" fill="#ffc658" name="المباع" />}
                     </BarChart>
                 </ResponsiveContainer>
             </div>
@@ -142,8 +166,8 @@ const ReportsPage: React.FC = () => {
                         <tr>
                             <th scope="col" className="px-6 py-3">{masterLabels[groupBy]}</th>
                             <th scope="col" className="px-6 py-3">إجمالي المستخدم</th>
-                            <th scope="col" className="px-6 py-3">إجمالي المصنّع</th>
-                            <th scope="col" className="px-6 py-3">إجمالي المباع</th>
+                             {groupBy !== 'materialTypeId' && <th scope="col" className="px-6 py-3">إجمالي المصنّع</th>}
+                             {groupBy !== 'materialTypeId' && <th scope="col" className="px-6 py-3">إجمالي المباع</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -151,8 +175,8 @@ const ReportsPage: React.FC = () => {
                             <tr key={item.name} className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
                                 <th scope="row" className="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{item.name}</th>
                                 <td className="px-6 py-4">{item.quantityUsed}</td>
-                                <td className="px-6 py-4">{item.quantityManufactured}</td>
-                                <td className="px-6 py-4">{item.quantitySold}</td>
+                                {groupBy !== 'materialTypeId' && <td className="px-6 py-4">{item.quantityManufactured}</td>}
+                                {groupBy !== 'materialTypeId' && <td className="px-6 py-4">{item.quantitySold}</td>}
                             </tr>
                         ))}
                     </tbody>
@@ -168,38 +192,28 @@ const ReportsPage: React.FC = () => {
                 <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
                     <tr>
                         <th scope="col" className="px-4 py-3">تاريخ التقرير</th>
-                        <th scope="col" className="px-4 py-3">بدء التشغيل</th>
-                        <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>
                         <th scope="col" className="px-4 py-3">الموديل</th>
-                        <th scope="col" className="px-4 py-3">الباركود</th>
-                        <th scope="col" className="px-4 py-3">اللون</th>
-                        <th scope="col" className="px-4 py-3">المقاس</th>
-                        <th scope="col" className="px-4 py-3">القماش</th>
-                        <th scope="col" className="px-4 py-3">الفئة</th>
-                        <th scope="col" className="px-4 py-3">الموسم</th>
-                        <th scope="col" className="px-4 py-3">نوع المادة</th>
-                        <th scope="col" className="px-4 py-3">الكمية المستخدمة</th>
+                        <th scope="col" className="px-4 py-3">المواد المستخدمة</th>
                         <th scope="col" className="px-4 py-3">الكمية المصنعة</th>
                         <th scope="col" className="px-4 py-3">الكمية المباعة</th>
+                        <th scope="col" className="px-4 py-3">ملاحظات</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filteredReports.map(report => (
                         <tr key={report.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td className="px-4 py-4">{report.reportDate}</td>
-                            <td className="px-4 py-4">{report.startDate}</td>
-                            <td className="px-4 py-4">{report.endDate}</td>
                             <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById('model', report.modelId)}</td>
-                            <td className="px-4 py-4">{getNameById('barcode', report.barcodeId)}</td>
-                            <td className="px-4 py-4">{getNameById('color', report.colorId)}</td>
-                            <td className="px-4 py-4">{getNameById('size', report.sizeId)}</td>
-                            <td className="px-4 py-4">{getNameById('fabric', report.fabricId)}</td>
-                            <td className="px-4 py-4">{getNameById('category', report.categoryId)}</td>
-                            <td className="px-4 py-4">{getNameById('season', report.seasonId)}</td>
-                            <td className="px-4 py-4">{getNameById('materialType', report.materialTypeId)}</td>
-                            <td className="px-4 py-4">{report.quantityUsed}</td>
+                            <td className="px-4 py-4">
+                              {(report.materialsUsed || []).map((m, index) => (
+                                <div key={index} className="whitespace-nowrap text-xs">
+                                  {getNameById('materialType', m.materialTypeId)}: <strong>{m.quantityUsed}</strong> متر
+                                </div>
+                              ))}
+                            </td>
                             <td className="px-4 py-4">{report.quantityManufactured}</td>
                             <td className="px-4 py-4">{report.quantitySold}</td>
+                            <td className="px-4 py-4">{report.notes || '-'}</td>
                         </tr>
                     ))}
                 </tbody>

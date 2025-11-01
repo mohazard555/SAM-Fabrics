@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import Card from '../components/Card';
@@ -62,12 +63,30 @@ const AdvancedReportsPage: React.FC = () => {
             if (filters.sizeId && report.sizeId !== filters.sizeId) return false;
             if (filters.categoryId && report.categoryId !== filters.categoryId) return false;
             if (filters.seasonId && report.seasonId !== filters.seasonId) return false;
-            if (filters.materialTypeId && report.materialTypeId !== filters.materialTypeId) return false;
+            if (filters.materialTypeId && !(report.materialsUsed || []).some(m => m.materialTypeId === filters.materialTypeId)) return false;
             return true;
         });
     }, [dailyReports, filters]);
 
     const groupedData = useMemo(() => {
+        if (groupBy === 'materialTypeId') {
+            const materialTotals = filteredReports.reduce<Record<string, { name: string, quantityUsed: number, quantityManufactured: number, quantitySold: number }>>((acc, report) => {
+                (report.materialsUsed || []).forEach(mu => {
+                    if (!acc[mu.materialTypeId]) {
+                        acc[mu.materialTypeId] = {
+                            name: getNameById('materialType', mu.materialTypeId),
+                            quantityUsed: 0,
+                            quantityManufactured: 0,
+                            quantitySold: 0,
+                        };
+                    }
+                    acc[mu.materialTypeId].quantityUsed += mu.quantityUsed;
+                });
+                return acc;
+            }, {});
+            return Object.values(materialTotals);
+        }
+
         const result = filteredReports.reduce((acc, report) => {
             const key = report[groupBy];
             if (!acc[key]) {
@@ -76,7 +95,7 @@ const AdvancedReportsPage: React.FC = () => {
                     quantityUsed: 0, quantityManufactured: 0, quantitySold: 0,
                 };
             }
-            acc[key].quantityUsed += report.quantityUsed;
+            acc[key].quantityUsed += (report.materialsUsed || []).reduce((sum, m) => sum + m.quantityUsed, 0);
             acc[key].quantityManufactured += report.quantityManufactured;
             acc[key].quantitySold += report.quantitySold;
             return acc;
@@ -97,10 +116,17 @@ const AdvancedReportsPage: React.FC = () => {
         categoryId: 'الفئة', seasonId: 'الموسم', reportDate: 'تاريخ التقرير',
     };
 
-    const handleExportGrouped = () => exportToExcel(`advanced-report-grouped-by-${groupBy}`, groupedData.map(d => ({
-        [masterLabels[groupBy]]: d.name,
-        'إجمالي المستخدم': d.quantityUsed, 'إجمالي المصنّع': d.quantityManufactured, 'إجمالي المباع': d.quantitySold
-    })));
+    const handleExportGrouped = () => exportToExcel(`advanced-report-grouped-by-${groupBy}`, groupedData.map(d => {
+        const row: any = {
+            [masterLabels[groupBy]]: d.name,
+            'إجمالي المستخدم': d.quantityUsed
+        };
+        if (groupBy !== 'materialTypeId') {
+             row['إجمالي المصنّع'] = d.quantityManufactured;
+             row['إجمالي المباع'] = d.quantitySold;
+        }
+       return row;
+    }));
     
     const handleExportDetails = () => {
         const dataToExport = filteredReports.map(report => ({
@@ -108,8 +134,10 @@ const AdvancedReportsPage: React.FC = () => {
             'الباركود': getNameById('barcode', report.barcodeId), 'القماش': getNameById('fabric', report.fabricId),
             'اللون': getNameById('color', report.colorId), 'المقاس': getNameById('size', report.sizeId),
             'الفئة': getNameById('category', report.categoryId), 'الموسم': getNameById('season', report.seasonId),
-            'الكمية المستخدمة': report.quantityUsed, 'الكمية المصنّعة': report.quantityManufactured,
+            'المواد المستخدمة': (report.materialsUsed || []).map(m => `${getNameById('materialType', m.materialTypeId)}: ${m.quantityUsed} متر`).join(' | '),
+            'الكمية المصنّعة': report.quantityManufactured,
             'الكمية المباعة': report.quantitySold, 'الرصيد': report.quantityManufactured - report.quantitySold,
+            'ملاحظات': report.notes || ''
         }));
         exportToExcel('advanced-report-details', dataToExport);
     };
@@ -125,8 +153,8 @@ const AdvancedReportsPage: React.FC = () => {
                         <Tooltip contentStyle={{ backgroundColor: 'var(--bg-color-tooltip, #fff)', border: '1px solid var(--border-color-tooltip, #ccc)' }} />
                         <Legend wrapperStyle={{ color: 'var(--text-color)' }} />
                         <Bar dataKey="quantityUsed" fill="#8884d8" name="المستخدم" />
-                        <Bar dataKey="quantityManufactured" fill="#82ca9d" name="المصنّع" />
-                        <Bar dataKey="quantitySold" fill="#ffc658" name="المباع" />
+                        {groupBy !== 'materialTypeId' && <Bar dataKey="quantityManufactured" fill="#82ca9d" name="المصنّع" />}
+                        {groupBy !== 'materialTypeId' && <Bar dataKey="quantitySold" fill="#ffc658" name="المباع" />}
                     </BarChart>
                 </ResponsiveContainer>
             </div>
@@ -137,8 +165,8 @@ const AdvancedReportsPage: React.FC = () => {
                         <tr>
                             <th scope="col" className="px-6 py-3">{masterLabels[groupBy]}</th>
                             <th scope="col" className="px-6 py-3">إجمالي المستخدم</th>
-                            <th scope="col" className="px-6 py-3">إجمالي المصنّع</th>
-                            <th scope="col" className="px-6 py-3">إجمالي المباع</th>
+                            {groupBy !== 'materialTypeId' && <th scope="col" className="px-6 py-3">إجمالي المصنّع</th>}
+                            {groupBy !== 'materialTypeId' && <th scope="col" className="px-6 py-3">إجمالي المباع</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -146,8 +174,8 @@ const AdvancedReportsPage: React.FC = () => {
                             <tr key={item.name} className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
                                 <th scope="row" className="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{item.name}</th>
                                 <td className="px-6 py-4">{item.quantityUsed}</td>
-                                <td className="px-6 py-4">{item.quantityManufactured}</td>
-                                <td className="px-6 py-4">{item.quantitySold}</td>
+                                {groupBy !== 'materialTypeId' && <td className="px-6 py-4">{item.quantityManufactured}</td>}
+                                {groupBy !== 'materialTypeId' && <td className="px-6 py-4">{item.quantitySold}</td>}
                             </tr>
                         ))}
                     </tbody>
@@ -159,40 +187,30 @@ const AdvancedReportsPage: React.FC = () => {
                     <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
                         <tr>
                             <th className="px-2 py-2">تاريخ التقرير</th>
-                            <th className="px-2 py-2">بدء التشغيل</th>
-                            <th className="px-2 py-2">انتهاء التشغيل</th>
-                            <th className="px-2 py-2">الباركود</th>
                             <th className="px-2 py-2">الموديل</th>
-                            <th className="px-2 py-2">نوع المادة</th>
-                            <th className="px-2 py-2">القماش</th>
-                            <th className="px-2 py-2">اللون</th>
-                            <th className="px-2 py-2">المقاس</th>
-                            <th className="px-2 py-2">الفئة</th>
-                            <th className="px-2 py-2">الموسم</th>
-                            <th className="px-2 py-2">الكمية المستخدمة</th>
+                            <th className="px-2 py-2">المواد المستخدمة</th>
                             <th className="px-2 py-2">المصنّع</th>
                             <th className="px-2 py-2">المباع</th>
                             <th className="px-2 py-2">الرصيد</th>
+                            <th className="px-2 py-2">ملاحظات</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredReports.map(r => (
                             <tr key={r.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                                 <td className="px-2 py-2">{r.reportDate}</td>
-                                <td className="px-2 py-2">{r.startDate}</td>
-                                <td className="px-2 py-2">{r.endDate}</td>
-                                <td className="px-2 py-2">{getNameById('barcode', r.barcodeId)}</td>
                                 <td className="px-2 py-2">{getNameById('model', r.modelId)}</td>
-                                <td className="px-2 py-2">{getNameById('materialType', r.materialTypeId)}</td>
-                                <td className="px-2 py-2">{getNameById('fabric', r.fabricId)}</td>
-                                <td className="px-2 py-2">{getNameById('color', r.colorId)}</td>
-                                <td className="px-2 py-2">{getNameById('size', r.sizeId)}</td>
-                                <td className="px-2 py-2">{getNameById('category', r.categoryId)}</td>
-                                <td className="px-2 py-2">{getNameById('season', r.seasonId)}</td>
-                                <td className="px-2 py-2">{r.quantityUsed}</td>
+                                 <td className="px-2 py-2">
+                                    {(r.materialsUsed || []).map((m, index) => (
+                                        <div key={index} className="whitespace-nowrap text-xs">
+                                        {getNameById('materialType', m.materialTypeId)}: <strong>{m.quantityUsed}</strong> متر
+                                        </div>
+                                    ))}
+                                </td>
                                 <td className="px-2 py-2">{r.quantityManufactured}</td>
                                 <td className="px-2 py-2">{r.quantitySold}</td>
                                 <td className="px-2 py-2 font-bold">{r.quantityManufactured - r.quantitySold}</td>
+                                <td className="px-2 py-2">{r.notes || '-'}</td>
                             </tr>
                         ))}
                     </tbody>

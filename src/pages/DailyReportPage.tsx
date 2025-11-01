@@ -1,8 +1,9 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import type { DailyReport } from '../types';
+import type { DailyReport, MaterialUsage } from '../types';
 import { Plus, Edit, Trash2, Search, Printer, Download } from 'lucide-react';
 import { exportToExcel } from '../utils/export';
 import PrintWrapper from '../components/PrintWrapper';
@@ -12,11 +13,10 @@ const EMPTY_REPORT: Omit<DailyReport, 'id'> = {
   reportDate: new Date().toISOString().split('T')[0],
   startDate: new Date().toISOString().split('T')[0],
   endDate: new Date().toISOString().split('T')[0],
-  materialTypeId: '',
+  materialsUsed: [{ materialTypeId: '', quantityUsed: 0 }],
   fabricId: '',
   colorId: '',
   modelId: '',
-  quantityUsed: 0,
   barcodeId: '',
   quantityManufactured: 0,
   quantitySold: 0,
@@ -51,6 +51,37 @@ const DailyReportPage: React.FC = () => {
     const { name, value } = e.target;
     setFormState(prev => ({ ...prev, [name]: name.startsWith('quantity') ? parseFloat(value) || 0 : value }));
   };
+
+  const handleMaterialChange = (index: number, field: keyof MaterialUsage, value: string | number) => {
+    const updatedMaterials = [...(formState.materialsUsed || [])];
+    const material = { ...updatedMaterials[index] };
+    if (field === 'quantityUsed') {
+      material[field] = Number(value) || 0;
+    } else {
+      material[field] = value as string;
+    }
+    updatedMaterials[index] = material;
+    setFormState(prev => ({ ...prev, materialsUsed: updatedMaterials }));
+  };
+
+  const addMaterial = () => {
+    setFormState(prev => ({
+      ...prev,
+      materialsUsed: [...(prev.materialsUsed || []), { materialTypeId: '', quantityUsed: 0 }],
+    }));
+  };
+
+  const removeMaterial = (index: number) => {
+    if (formState.materialsUsed && formState.materialsUsed.length > 1) {
+        setFormState(prev => ({
+            ...prev,
+            materialsUsed: prev.materialsUsed.filter((_, i) => i !== index),
+        }));
+    } else {
+        alert("يجب أن يكون هناك مادة واحدة على الأقل.");
+    }
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +125,9 @@ const DailyReportPage: React.FC = () => {
         const season = getNameById(seasons, report.seasonId);
         const barcode = getNameById(barcodes, report.barcodeId);
         const searchTermLower = searchTerm.toLowerCase();
+        const materialsMatch = (report.materialsUsed || []).some(m => 
+            getNameById(materialTypes, m.materialTypeId).toLowerCase().includes(searchTermLower)
+        );
 
         return model.toLowerCase().includes(searchTermLower) ||
                color.toLowerCase().includes(searchTermLower) ||
@@ -101,9 +135,10 @@ const DailyReportPage: React.FC = () => {
                size.toLowerCase().includes(searchTermLower) ||
                category.toLowerCase().includes(searchTermLower) ||
                season.toLowerCase().includes(searchTermLower) ||
-               barcode.toLowerCase().includes(searchTermLower);
+               barcode.toLowerCase().includes(searchTermLower) ||
+               materialsMatch;
     });
-  }, [dailyReports, searchTerm, models, colors, fabrics, sizes, categories, seasons, barcodes]);
+  }, [dailyReports, searchTerm, models, colors, fabrics, sizes, categories, seasons, barcodes, materialTypes]);
 
   const handleExport = () => {
       if (!permissions?.canExport) { alert('ليس لديك صلاحية التصدير'); return; }
@@ -118,7 +153,7 @@ const DailyReportPage: React.FC = () => {
         'المقاس': getNameById(sizes, report.sizeId),
         'الفئة': getNameById(categories, report.categoryId),
         'الموسم': getNameById(seasons, report.seasonId),
-        'الكمية المستخدمة': report.quantityUsed,
+        'المواد المستخدمة': (report.materialsUsed || []).map(m => `${getNameById(materialTypes, m.materialTypeId)}: ${m.quantityUsed} متر`).join(' | '),
         'الكمية المصنّعة': report.quantityManufactured,
         'الكمية المباعة': report.quantitySold,
         'ملاحظات': report.notes || '',
@@ -133,8 +168,7 @@ const DailyReportPage: React.FC = () => {
             <tr>
               <th scope="col" className="px-4 py-3">تاريخ التقرير</th>
               <th scope="col" className="px-4 py-3">بدء التشغيل</th>
-              <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>
-              <th scope="col" className="px-4 py-3">نوع المادة</th>
+              <th scope="col" className="px-4 py-3">المواد المستخدمة</th>
               <th scope="col" className="px-4 py-3">الباركود</th>
               <th scope="col" className="px-4 py-3">الموديل</th>
               <th scope="col" className="px-4 py-3">القماش</th>
@@ -142,6 +176,7 @@ const DailyReportPage: React.FC = () => {
               <th scope="col" className="px-4 py-3">المقاس</th>
               <th scope="col" className="px-4 py-3">الكمية المصنعة</th>
               <th scope="col" className="px-4 py-3">الكمية المباعة</th>
+              {isPrint && <th scope="col" className="px-4 py-3">ملاحظات</th>}
               {!isPrint && <th scope="col" className="px-4 py-3">إجراءات</th>}
             </tr>
           </thead>
@@ -150,8 +185,13 @@ const DailyReportPage: React.FC = () => {
               <tr key={report.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td className="px-4 py-4">{report.reportDate}</td>
                 <td className="px-4 py-4">{report.startDate}</td>
-                <td className="px-4 py-4">{report.endDate}</td>
-                <td className="px-4 py-4">{getNameById(materialTypes, report.materialTypeId)}</td>
+                <td className="px-4 py-4">
+                  {(report.materialsUsed || []).map((m, index) => (
+                    <div key={index} className="whitespace-nowrap text-xs">
+                      {getNameById(materialTypes, m.materialTypeId)}: <strong>{m.quantityUsed}</strong> متر
+                    </div>
+                  ))}
+                </td>
                 <td className="px-4 py-4">{getNameById(barcodes, report.barcodeId)}</td>
                 <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById(models, report.modelId)}</td>
                 <td className="px-4 py-4">{getNameById(fabrics, report.fabricId)}</td>
@@ -159,6 +199,7 @@ const DailyReportPage: React.FC = () => {
                 <td className="px-4 py-4">{getNameById(sizes, report.sizeId)}</td>
                 <td className="px-4 py-4">{report.quantityManufactured}</td>
                 <td className="px-4 py-4">{report.quantitySold}</td>
+                 {isPrint && <td className="px-4 py-4">{report.notes || '-'}</td>}
                 {!isPrint && (
                   <td className="px-4 py-4 flex items-center space-x-2 space-x-reverse">
                     <button onClick={() => handleEdit(report)} className="text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-400" disabled={!permissions?.canEdit}><Edit size={18} /></button>
@@ -172,48 +213,86 @@ const DailyReportPage: React.FC = () => {
       </div>
   );
   
-  const inputClass = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3";
+  const inputClass = "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3";
   const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300";
 
   return (
     <div>
-        {isPrinting && <PrintWrapper title="التقرير اليومي للإنتاج والمبيعات">{renderTable(true, dailyReports)}</PrintWrapper>}
+        {isPrinting && <PrintWrapper title="التقرير اليومي للإنتاج والمبيعات">{renderTable(true, filteredReports)}</PrintWrapper>}
         <div className={isPrinting ? 'hidden' : ''}>
             <Card title={isEditing ? "تعديل السجل" : "إضافة سجل جديد"}>
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-5">
-                <div><label className={labelClass}>تاريخ التقرير</label><input type="date" name="reportDate" value={formState.reportDate} onChange={handleInputChange} className={inputClass} required /></div>
-                <div><label className={labelClass}>بدء التشغيل</label><input type="date" name="startDate" value={formState.startDate} onChange={handleInputChange} className={inputClass} required /></div>
-                <div><label className={labelClass}>انتهاء التشغيل</label><input type="date" name="endDate" value={formState.endDate} onChange={handleInputChange} className={inputClass} required /></div>
-                
-                <div><label className={labelClass}>نوع المادة</label><select name="materialTypeId" value={formState.materialTypeId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{materialTypes.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>
-                <div><label className={labelClass}>القماش</label><select name="fabricId" value={formState.fabricId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{fabrics.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
-                <div><label className={labelClass}>اللون</label><select name="colorId" value={formState.colorId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{colors.map(c => <option key={c.id} value={c.id}>{c.name} - {c.id}</option>)}</select></div>
-                <div><label className={labelClass}>الموديل</label><select name="modelId" value={formState.modelId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>
-                <div><label className={labelClass}>الباركود</label><select name="barcodeId" value={formState.barcodeId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{barcodes.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></div>
-                
-                <div><label className={labelClass}>المقاس</label><select name="sizeId" value={formState.sizeId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{sizes.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
-                <div><label className={labelClass}>الفئة</label><select name="categoryId" value={formState.categoryId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-                <div><label className={labelClass}>الموسم</label><select name="seasonId" value={formState.seasonId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-5">
+                  <div><label className={labelClass}>تاريخ التقرير</label><input type="date" name="reportDate" value={formState.reportDate} onChange={handleInputChange} className={inputClass} required /></div>
+                  <div><label className={labelClass}>بدء التشغيل</label><input type="date" name="startDate" value={formState.startDate} onChange={handleInputChange} className={inputClass} required /></div>
+                  <div><label className={labelClass}>انتهاء التشغيل</label><input type="date" name="endDate" value={formState.endDate} onChange={handleInputChange} className={inputClass} required /></div>
+                  
+                  <div><label className={labelClass}>القماش</label><select name="fabricId" value={formState.fabricId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{fabrics.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
+                  <div><label className={labelClass}>اللون</label><select name="colorId" value={formState.colorId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{colors.map(c => <option key={c.id} value={c.id}>{c.name} - {c.id}</option>)}</select></div>
+                  <div><label className={labelClass}>الموديل</label><select name="modelId" value={formState.modelId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>
+                  <div><label className={labelClass}>الباركود</label><select name="barcodeId" value={formState.barcodeId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{barcodes.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></div>
+                  
+                  <div><label className={labelClass}>المقاس</label><select name="sizeId" value={formState.sizeId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{sizes.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+                  <div><label className={labelClass}>الفئة</label><select name="categoryId" value={formState.categoryId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                  <div><label className={labelClass}>الموسم</label><select name="seasonId" value={formState.seasonId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
 
-                <div className="relative">
-                  <label className={labelClass}>الكمية المستخدمة</label>
-                  <input type="number" name="quantityUsed" value={formState.quantityUsed} onChange={handleInputChange} className={inputClass} required />
-                  <span className="absolute left-3 top-1/2 mt-3 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">متر</span>
+                  <div className="relative">
+                    <label className={labelClass}>الكمية المصنّعة</label>
+                    <input type="number" name="quantityManufactured" value={formState.quantityManufactured} onChange={handleInputChange} className={inputClass} required />
+                    <span className="absolute left-3 top-1/2 mt-3 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">عدد</span>
+                  </div>
+                  <div className="relative">
+                    <label className={labelClass}>الكمية المباعة</label>
+                    <input type="number" name="quantitySold" value={formState.quantitySold} onChange={handleInputChange} className={inputClass} required />
+                    <span className="absolute left-3 top-1/2 mt-3 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">عدد</span>
+                  </div>
                 </div>
-                <div className="relative">
-                  <label className={labelClass}>الكمية المصنّعة</label>
-                  <input type="number" name="quantityManufactured" value={formState.quantityManufactured} onChange={handleInputChange} className={inputClass} required />
-                  <span className="absolute left-3 top-1/2 mt-3 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">عدد</span>
-                </div>
-                <div className="relative">
-                  <label className={labelClass}>الكمية المباعة</label>
-                  <input type="number" name="quantitySold" value={formState.quantitySold} onChange={handleInputChange} className={inputClass} required />
-                  <span className="absolute left-3 top-1/2 mt-3 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">عدد</span>
+
+                <div className="border dark:border-gray-600 p-4 rounded-lg">
+                  <h4 className="font-bold mb-3 text-gray-800 dark:text-gray-200">المواد المستخدمة</h4>
+                  <div className="space-y-3">
+                    {(formState.materialsUsed || []).map((material, index) => (
+                      <div key={index} className="grid grid-cols-12 gap-3 items-center">
+                          <div className="col-span-6">
+                              <label className={`${labelClass} sr-only`}>نوع المادة</label>
+                              <select 
+                                  value={material.materialTypeId} 
+                                  onChange={(e) => handleMaterialChange(index, 'materialTypeId', e.target.value)} 
+                                  className={inputClass} 
+                                  required
+                              >
+                                  <option value="">اختر نوع المادة...</option>
+                                  {materialTypes.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                              </select>
+                          </div>
+                          <div className="col-span-5 relative">
+                              <label className={`${labelClass} sr-only`}>الكمية المستخدمة</label>
+                              <input 
+                                  type="number" 
+                                  value={material.quantityUsed} 
+                                  onChange={(e) => handleMaterialChange(index, 'quantityUsed', e.target.value)} 
+                                  className={`${inputClass} !pr-12`} 
+                                  required 
+                              />
+                               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">متر</span>
+                          </div>
+                          <div className="col-span-1">
+                              <Button type="button" variant="danger" onClick={() => removeMaterial(index)} className="!p-3">
+                                  <Trash2 size={16} />
+                              </Button>
+                          </div>
+                      </div>
+                    ))}
+                  </div>
+                  <Button type="button" onClick={addMaterial} variant="secondary" className="mt-3" icon={<Plus size={16} />}>إضافة مادة</Button>
                 </div>
                 
-                <div className="sm:col-span-2 md:col-span-3 lg:col-span-4"><label className={labelClass}>ملاحظات أخرى</label><textarea name="notes" value={formState.notes || ''} onChange={handleInputChange} rows={3} className={inputClass}></textarea></div>
+                <div>
+                  <label className={labelClass}>ملاحظات أخرى</label>
+                  <textarea name="notes" value={formState.notes || ''} onChange={handleInputChange} rows={3} className={inputClass}></textarea>
+                </div>
 
-                <div className="sm:col-span-2 md:col-span-3 lg:col-span-4 flex items-center justify-end space-x-2 space-x-reverse pt-4">
+                <div className="flex items-center justify-end space-x-2 space-x-reverse pt-4">
                     <Button type="submit" variant={isEditing ? 'success' : 'primary'} icon={isEditing ? <Edit size={16} /> : <Plus size={16} />}>
                     {isEditing ? 'تحديث السجل' : 'إضافة سجل'}
                     </Button>

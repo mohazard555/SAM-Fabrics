@@ -1,3 +1,4 @@
+
 export interface Color {
   id: string;
   name: string;
@@ -42,16 +43,20 @@ export interface Season {
   name: string;
 }
 
+export interface MaterialUsage {
+  materialTypeId: string;
+  quantityUsed: number;
+}
+
 export interface DailyReport {
   id: string;
   reportDate: string;
   startDate: string;
   endDate: string;
-  materialTypeId: string;
+  materialsUsed: MaterialUsage[];
   fabricId: string;
   colorId: string;
   modelId: string;
-  quantityUsed: number;
   barcodeId: string;
   quantityManufactured: number;
   quantitySold: number;
