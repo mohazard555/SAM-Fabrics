@@ -61,6 +61,8 @@ const InventoryPage: React.FC = () => {
   const handleExport = () => {
       const dataToExport = filteredReports.map(report => ({
         'تاريخ التقرير': report.reportDate,
+        'بدء التشغيل': report.startDate,
+        'انتهاء التشغيل': report.endDate,
         'الباركود': getNameById(barcodes, report.barcodeId),
         'الموديل': getNameById(models, report.modelId),
         'القماش': getNameById(fabrics, report.fabricId),
@@ -83,8 +85,14 @@ const InventoryPage: React.FC = () => {
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
             <tr>
               <th scope="col" className="px-4 py-3">تاريخ التقرير</th>
+              <th scope="col" className="px-4 py-3">بدء التشغيل</th>
+              <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>
               <th scope="col" className="px-4 py-3">الباركود</th>
               <th scope="col" className="px-4 py-3">الموديل</th>
+              <th scope="col" className="px-4 py-3">القماش</th>
+              <th scope="col" className="px-4 py-3">اللون</th>
+              <th scope="col" className="px-4 py-3">المقاس</th>
+              <th scope="col" className="px-4 py-3">الفئة</th>
               <th scope="col" className="px-4 py-3">المواد المستخدمة</th>
               <th scope="col" className="px-4 py-3">الكمية المصنّعة</th>
               <th scope="col" className="px-4 py-3">الكمية المباعة</th>
@@ -96,8 +104,14 @@ const InventoryPage: React.FC = () => {
             {reportsToRender.map(report => (
               <tr key={report.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td className="px-4 py-4">{report.reportDate}</td>
+                <td className="px-4 py-4">{report.startDate}</td>
+                <td className="px-4 py-4">{report.endDate}</td>
                 <td className="px-4 py-4">{getNameById(barcodes, report.barcodeId)}</td>
                 <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById(models, report.modelId)}</td>
+                <td className="px-4 py-4">{getNameById(fabrics, report.fabricId)}</td>
+                <td className="px-4 py-4">{getNameById(colors, report.colorId)}</td>
+                <td className="px-4 py-4">{getNameById(sizes, report.sizeId)}</td>
+                <td className="px-4 py-4">{getNameById(categories, report.categoryId)}</td>
                 <td className="px-4 py-4">
                   {(report.materialsUsed || []).map((m, index) => (
                     <div key={index} className="whitespace-nowrap text-xs">

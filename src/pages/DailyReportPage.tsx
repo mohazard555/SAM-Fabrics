@@ -168,12 +168,14 @@ const DailyReportPage: React.FC = () => {
             <tr>
               <th scope="col" className="px-4 py-3">تاريخ التقرير</th>
               <th scope="col" className="px-4 py-3">بدء التشغيل</th>
+              <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>
               <th scope="col" className="px-4 py-3">المواد المستخدمة</th>
               <th scope="col" className="px-4 py-3">الباركود</th>
               <th scope="col" className="px-4 py-3">الموديل</th>
               <th scope="col" className="px-4 py-3">القماش</th>
               <th scope="col" className="px-4 py-3">اللون</th>
               <th scope="col" className="px-4 py-3">المقاس</th>
+              <th scope="col" className="px-4 py-3">الفئة</th>
               <th scope="col" className="px-4 py-3">الكمية المصنعة</th>
               <th scope="col" className="px-4 py-3">الكمية المباعة</th>
               {isPrint && <th scope="col" className="px-4 py-3">ملاحظات</th>}
@@ -185,6 +187,7 @@ const DailyReportPage: React.FC = () => {
               <tr key={report.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td className="px-4 py-4">{report.reportDate}</td>
                 <td className="px-4 py-4">{report.startDate}</td>
+                <td className="px-4 py-4">{report.endDate}</td>
                 <td className="px-4 py-4">
                   {(report.materialsUsed || []).map((m, index) => (
                     <div key={index} className="whitespace-nowrap text-xs">
@@ -197,6 +200,7 @@ const DailyReportPage: React.FC = () => {
                 <td className="px-4 py-4">{getNameById(fabrics, report.fabricId)}</td>
                 <td className="px-4 py-4">{getNameById(colors, report.colorId)}</td>
                 <td className="px-4 py-4">{getNameById(sizes, report.sizeId)}</td>
+                <td className="px-4 py-4">{getNameById(categories, report.categoryId)}</td>
                 <td className="px-4 py-4">{report.quantityManufactured}</td>
                 <td className="px-4 py-4">{report.quantitySold}</td>
                  {isPrint && <td className="px-4 py-4">{report.notes || '-'}</td>}

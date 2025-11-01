@@ -187,7 +187,14 @@ const AdvancedReportsPage: React.FC = () => {
                     <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
                         <tr>
                             <th className="px-2 py-2">تاريخ التقرير</th>
+                            <th className="px-2 py-2">بدء التشغيل</th>
+                            <th className="px-2 py-2">انتهاء التشغيل</th>
+                            <th className="px-2 py-2">الباركود</th>
                             <th className="px-2 py-2">الموديل</th>
+                            <th className="px-2 py-2">القماش</th>
+                            <th className="px-2 py-2">اللون</th>
+                            <th className="px-2 py-2">المقاس</th>
+                            <th className="px-2 py-2">الفئة</th>
                             <th className="px-2 py-2">المواد المستخدمة</th>
                             <th className="px-2 py-2">المصنّع</th>
                             <th className="px-2 py-2">المباع</th>
@@ -199,8 +206,15 @@ const AdvancedReportsPage: React.FC = () => {
                         {filteredReports.map(r => (
                             <tr key={r.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                                 <td className="px-2 py-2">{r.reportDate}</td>
+                                <td className="px-2 py-2">{r.startDate}</td>
+                                <td className="px-2 py-2">{r.endDate}</td>
+                                <td className="px-2 py-2">{getNameById('barcode', r.barcodeId)}</td>
                                 <td className="px-2 py-2">{getNameById('model', r.modelId)}</td>
-                                 <td className="px-2 py-2">
+                                <td className="px-2 py-2">{getNameById('fabric', r.fabricId)}</td>
+                                <td className="px-2 py-2">{getNameById('color', r.colorId)}</td>
+                                <td className="px-2 py-2">{getNameById('size', r.sizeId)}</td>
+                                <td className="px-2 py-2">{getNameById('category', r.categoryId)}</td>
+                                <td className="px-2 py-2">
                                     {(r.materialsUsed || []).map((m, index) => (
                                         <div key={index} className="whitespace-nowrap text-xs">
                                         {getNameById('materialType', m.materialTypeId)}: <strong>{m.quantityUsed}</strong> متر
