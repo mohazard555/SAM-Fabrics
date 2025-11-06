@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import type { AppData, Color, Model, MaterialType, Barcode, Item, DailyReport, UserSettings, User, Size, Category, Season } from '../types';
+import type { AppData } from '../types';
 
 const initialData: AppData = {
   colors: [{id: 'C001', name: 'أحمر'}, {id: 'C002', name: 'أزرق'}],
@@ -34,6 +34,88 @@ const initialData: AppData = {
     }
   ],
 };
+
+// --- Start of Data Migration Logic ---
+const migrateDataIfNeeded = () => {
+  const key = 'sam-pro-data';
+  try {
+    const item = window.localStorage.getItem(key);
+    if (!item) return; // No data in storage, no migration needed.
+
+    const storedData = JSON.parse(item);
+
+    const needsMigration = (d: any): boolean => {
+      if (!d) return false;
+      // Check for old top-level key 'fabrics'
+      if (d.hasOwnProperty('fabrics')) return true;
+      // Check for old keys in a sample daily report
+      if (d.dailyReports && d.dailyReports.length > 0) {
+        const firstReport = d.dailyReports[0];
+        if (firstReport && (firstReport.hasOwnProperty('fabricId') || firstReport.hasOwnProperty('quantityUsed') || firstReport.hasOwnProperty('materialTypeId'))) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    if (needsMigration(storedData)) {
+      console.log("SAM Pro: Stale data detected. Running migration...");
+      
+      const migratedData = { ...storedData };
+
+      // 1. Rename top-level 'fabrics' array to 'items'
+      if (migratedData.fabrics) {
+        migratedData.items = migratedData.fabrics;
+        delete migratedData.fabrics;
+      }
+
+      // 2. Migrate structure of each object in 'dailyReports'
+      if (migratedData.dailyReports) {
+        migratedData.dailyReports = migratedData.dailyReports.map((report: any) => {
+          // Idempotency check: if already migrated, skip.
+          if (report.itemId && Array.isArray(report.materialsUsed)) {
+            return report;
+          }
+          
+          const newReport = { ...report };
+          
+          // a. Rename fabricId -> itemId
+          if (newReport.hasOwnProperty('fabricId')) {
+            newReport.itemId = newReport.fabricId;
+            delete newReport.fabricId;
+          }
+
+          // b. Convert materialTypeId + quantityUsed -> materialsUsed array
+          if (newReport.hasOwnProperty('materialTypeId') && newReport.hasOwnProperty('quantityUsed')) {
+            newReport.materialsUsed = [{
+              materialTypeId: newReport.materialTypeId,
+              quantityUsed: newReport.quantityUsed,
+            }];
+          } else if (!newReport.materialsUsed) {
+            // Ensure the property exists if old data was malformed
+            newReport.materialsUsed = [];
+          }
+          
+          // Delete old keys
+          delete newReport.materialTypeId;
+          delete newReport.quantityUsed;
+          
+          return newReport;
+        });
+      }
+      
+      window.localStorage.setItem(key, JSON.stringify(migratedData));
+      console.log("SAM Pro: Migration complete. Data saved to localStorage.");
+    }
+  } catch (error) {
+    console.error("Error during pre-boot data migration:", error);
+  }
+};
+
+// Run migration synchronously before any React component renders.
+migrateDataIfNeeded();
+// --- End of Data Migration Logic ---
+
 
 type AppDataArrayKeys = keyof Omit<AppData, 'settings'>;
 
