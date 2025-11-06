@@ -10,7 +10,7 @@ import PrintWrapper from '../components/PrintWrapper';
 
 const InventoryPage: React.FC = () => {
   const { data } = useData();
-  const { dailyReports, colors, models, fabrics, sizes, categories, seasons, barcodes, materialTypes } = data;
+  const { dailyReports, colors, models, items, sizes, categories, seasons, barcodes, materialTypes } = data;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isPrinting, setIsPrinting] = useState(false);
@@ -31,7 +31,7 @@ const InventoryPage: React.FC = () => {
         if (!searchTerm) return true;
         const model = getNameById(models, report.modelId);
         const color = getNameById(colors, report.colorId);
-        const fabric = getNameById(fabrics, report.fabricId);
+        const item = getNameById(items, report.itemId);
         const size = getNameById(sizes, report.sizeId);
         const category = getNameById(categories, report.categoryId);
         const season = getNameById(seasons, report.seasonId);
@@ -43,7 +43,7 @@ const InventoryPage: React.FC = () => {
 
         return model.toLowerCase().includes(searchTermLower) ||
                color.toLowerCase().includes(searchTermLower) ||
-               fabric.toLowerCase().includes(searchTermLower) ||
+               item.toLowerCase().includes(searchTermLower) ||
                size.toLowerCase().includes(searchTermLower) ||
                category.toLowerCase().includes(searchTermLower) ||
                season.toLowerCase().includes(searchTermLower) ||
@@ -52,7 +52,7 @@ const InventoryPage: React.FC = () => {
                (report.notes || '').toLowerCase().includes(searchTermLower) ||
                materialsMatch;
     });
-  }, [dailyReports, searchTerm, models, colors, fabrics, sizes, categories, seasons, barcodes, materialTypes]);
+  }, [dailyReports, searchTerm, models, colors, items, sizes, categories, seasons, barcodes, materialTypes]);
 
   const handlePrint = () => {
       setIsPrinting(true);
@@ -65,7 +65,7 @@ const InventoryPage: React.FC = () => {
         'انتهاء التشغيل': report.endDate,
         'الباركود': getNameById(barcodes, report.barcodeId),
         'الموديل': getNameById(models, report.modelId),
-        'القماش': getNameById(fabrics, report.fabricId),
+        'الصنف': getNameById(items, report.itemId),
         'اللون': getNameById(colors, report.colorId),
         'المقاس': getNameById(sizes, report.sizeId),
         'الفئة': getNameById(categories, report.categoryId),
@@ -89,7 +89,7 @@ const InventoryPage: React.FC = () => {
               <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>
               <th scope="col" className="px-4 py-3">الباركود</th>
               <th scope="col" className="px-4 py-3">الموديل</th>
-              <th scope="col" className="px-4 py-3">القماش</th>
+              <th scope="col" className="px-4 py-3">الصنف</th>
               <th scope="col" className="px-4 py-3">اللون</th>
               <th scope="col" className="px-4 py-3">المقاس</th>
               <th scope="col" className="px-4 py-3">الفئة</th>
@@ -108,7 +108,7 @@ const InventoryPage: React.FC = () => {
                 <td className="px-4 py-4">{report.endDate}</td>
                 <td className="px-4 py-4">{getNameById(barcodes, report.barcodeId)}</td>
                 <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById(models, report.modelId)}</td>
-                <td className="px-4 py-4">{getNameById(fabrics, report.fabricId)}</td>
+                <td className="px-4 py-4">{getNameById(items, report.itemId)}</td>
                 <td className="px-4 py-4">{getNameById(colors, report.colorId)}</td>
                 <td className="px-4 py-4">{getNameById(sizes, report.sizeId)}</td>
                 <td className="px-4 py-4">{getNameById(categories, report.categoryId)}</td>

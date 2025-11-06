@@ -24,7 +24,7 @@ const Header: React.FC = () => {
         )}
         <div>
           <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">لوحة التحكم</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">مرحباً بك في نظام SAM Pro لإدارة تكاليف الأقمشة</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">مرحباً بك في نظام SAM Pro لإدارة تكاليف الأصناف</p>
         </div>
       </div>
       <div className="flex items-center space-x-6 space-x-reverse text-sm text-gray-600 dark:text-gray-300">

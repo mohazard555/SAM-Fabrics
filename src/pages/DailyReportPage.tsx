@@ -14,7 +14,7 @@ const EMPTY_REPORT: Omit<DailyReport, 'id'> = {
   startDate: new Date().toISOString().split('T')[0],
   endDate: new Date().toISOString().split('T')[0],
   materialsUsed: [{ materialTypeId: '', quantityUsed: 0 }],
-  fabricId: '',
+  itemId: '',
   colorId: '',
   modelId: '',
   barcodeId: '',
@@ -30,7 +30,7 @@ const DailyReportPage: React.FC = () => {
   const { data, addOrUpdateItem, deleteItem } = useData();
   const { currentUser } = useAuth();
   const permissions = currentUser?.permissions;
-  const { dailyReports, colors, models, materialTypes, fabrics, barcodes, sizes, categories, seasons } = data;
+  const { dailyReports, colors, models, materialTypes, items, barcodes, sizes, categories, seasons } = data;
 
   const [formState, setFormState] = useState<Omit<DailyReport, 'id'> & { id?: string }>(EMPTY_REPORT);
   const [isEditing, setIsEditing] = useState(false);
@@ -119,7 +119,7 @@ const DailyReportPage: React.FC = () => {
     return dailyReports.filter(report => {
         const model = getNameById(models, report.modelId);
         const color = getNameById(colors, report.colorId);
-        const fabric = getNameById(fabrics, report.fabricId);
+        const item = getNameById(items, report.itemId);
         const size = getNameById(sizes, report.sizeId);
         const category = getNameById(categories, report.categoryId);
         const season = getNameById(seasons, report.seasonId);
@@ -131,14 +131,14 @@ const DailyReportPage: React.FC = () => {
 
         return model.toLowerCase().includes(searchTermLower) ||
                color.toLowerCase().includes(searchTermLower) ||
-               fabric.toLowerCase().includes(searchTermLower) ||
+               item.toLowerCase().includes(searchTermLower) ||
                size.toLowerCase().includes(searchTermLower) ||
                category.toLowerCase().includes(searchTermLower) ||
                season.toLowerCase().includes(searchTermLower) ||
                barcode.toLowerCase().includes(searchTermLower) ||
                materialsMatch;
     });
-  }, [dailyReports, searchTerm, models, colors, fabrics, sizes, categories, seasons, barcodes, materialTypes]);
+  }, [dailyReports, searchTerm, models, colors, items, sizes, categories, seasons, barcodes, materialTypes]);
 
   const handleExport = () => {
       if (!permissions?.canExport) { alert('ليس لديك صلاحية التصدير'); return; }
@@ -148,7 +148,7 @@ const DailyReportPage: React.FC = () => {
         'انتهاء التشغيل': report.endDate,
         'الباركود': getNameById(barcodes, report.barcodeId),
         'الموديل': getNameById(models, report.modelId),
-        'القماش': getNameById(fabrics, report.fabricId),
+        'الصنف': getNameById(items, report.itemId),
         'اللون': getNameById(colors, report.colorId),
         'المقاس': getNameById(sizes, report.sizeId),
         'الفئة': getNameById(categories, report.categoryId),
@@ -172,7 +172,7 @@ const DailyReportPage: React.FC = () => {
               <th scope="col" className="px-4 py-3">المواد المستخدمة</th>
               <th scope="col" className="px-4 py-3">الباركود</th>
               <th scope="col" className="px-4 py-3">الموديل</th>
-              <th scope="col" className="px-4 py-3">القماش</th>
+              <th scope="col" className="px-4 py-3">الصنف</th>
               <th scope="col" className="px-4 py-3">اللون</th>
               <th scope="col" className="px-4 py-3">المقاس</th>
               <th scope="col" className="px-4 py-3">الفئة</th>
@@ -197,7 +197,7 @@ const DailyReportPage: React.FC = () => {
                 </td>
                 <td className="px-4 py-4">{getNameById(barcodes, report.barcodeId)}</td>
                 <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById(models, report.modelId)}</td>
-                <td className="px-4 py-4">{getNameById(fabrics, report.fabricId)}</td>
+                <td className="px-4 py-4">{getNameById(items, report.itemId)}</td>
                 <td className="px-4 py-4">{getNameById(colors, report.colorId)}</td>
                 <td className="px-4 py-4">{getNameById(sizes, report.sizeId)}</td>
                 <td className="px-4 py-4">{getNameById(categories, report.categoryId)}</td>
@@ -231,7 +231,7 @@ const DailyReportPage: React.FC = () => {
                   <div><label className={labelClass}>بدء التشغيل</label><input type="date" name="startDate" value={formState.startDate} onChange={handleInputChange} className={inputClass} required /></div>
                   <div><label className={labelClass}>انتهاء التشغيل</label><input type="date" name="endDate" value={formState.endDate} onChange={handleInputChange} className={inputClass} required /></div>
                   
-                  <div><label className={labelClass}>القماش</label><select name="fabricId" value={formState.fabricId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{fabrics.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
+                  <div><label className={labelClass}>الصنف</label><select name="itemId" value={formState.itemId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{items.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
                   <div><label className={labelClass}>اللون</label><select name="colorId" value={formState.colorId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{colors.map(c => <option key={c.id} value={c.id}>{c.name} - {c.id}</option>)}</select></div>
                   <div><label className={labelClass}>الموديل</label><select name="modelId" value={formState.modelId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>
                   <div><label className={labelClass}>الباركود</label><select name="barcodeId" value={formState.barcodeId} onChange={handleInputChange} className={inputClass} required><option value="">اختر...</option>{barcodes.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></div>

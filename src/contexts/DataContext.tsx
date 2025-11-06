@@ -1,13 +1,13 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import type { AppData, Color, Model, MaterialType, Barcode, Fabric, DailyReport, UserSettings, User, Size, Category, Season } from '../types';
+import type { AppData, Color, Model, MaterialType, Barcode, Item, DailyReport, UserSettings, User, Size, Category, Season } from '../types';
 
 const initialData: AppData = {
   colors: [{id: 'C001', name: 'أحمر'}, {id: 'C002', name: 'أزرق'}],
   models: [{id: 'M001', name: 'موديل صيفي 2024'}],
   materialTypes: [{id: 'MT001', name: 'قطن'}],
   barcodes: [{id: 'B001', name: 'صنف أ', modelId: 'M001'}],
-  fabrics: [{id: 'F001', name: 'قماش جينز', type: 'دينيم'}],
+  items: [{id: 'I001', name: 'صنف جينز', type: 'دينيم'}],
   sizes: [{id: 'S001', name: 'Medium'}, {id: 'S002', name: 'Large'}],
   categories: [{id: 'CAT001', name: 'رجالي'}, {id: 'CAT002', name: 'نسائي'}],
   seasons: [{id: 'SE001', name: 'صيف 2024'}, {id: 'SE002', name: 'شتاء 2025'}],

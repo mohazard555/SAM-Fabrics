@@ -9,7 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import type { DailyReport } from '../types';
 import PrintWrapper from '../components/PrintWrapper';
 
-type GroupingKey = 'materialTypeId' | 'modelId' | 'colorId' | 'barcodeId' | 'fabricId' | 'sizeId' | 'categoryId' | 'seasonId' | 'reportDate';
+type GroupingKey = 'materialTypeId' | 'modelId' | 'colorId' | 'barcodeId' | 'itemId' | 'sizeId' | 'categoryId' | 'seasonId' | 'reportDate';
 
 const ReportsPage: React.FC = () => {
     const { data } = useData();
@@ -24,7 +24,7 @@ const ReportsPage: React.FC = () => {
             'model': 'models',
             'color': 'colors',
             'barcode': 'barcodes',
-            'fabric': 'fabrics',
+            'item': 'items',
             'size': 'sizes',
             'category': 'categories',
             'season': 'seasons',
@@ -113,7 +113,7 @@ const ReportsPage: React.FC = () => {
             'انتهاء التشغيل': report.endDate,
             'الموديل': getNameById('model', report.modelId),
             'الباركود': getNameById('barcode', report.barcodeId),
-            'القماش': getNameById('fabric', report.fabricId),
+            'الصنف': getNameById('item', report.itemId),
             'اللون': getNameById('color', report.colorId),
             'المقاس': getNameById('size', report.sizeId),
             'الفئة': getNameById('category', report.categoryId),
@@ -131,7 +131,7 @@ const ReportsPage: React.FC = () => {
         materialTypeId: 'نوع المادة',
         colorId: 'اللون',
         barcodeId: 'الباركود',
-        fabricId: 'القماش',
+        itemId: 'الصنف',
         sizeId: 'المقاس',
         categoryId: 'الفئة',
         seasonId: 'الموسم',
@@ -196,7 +196,7 @@ const ReportsPage: React.FC = () => {
                         <th scope="col" className="px-4 py-3">انتهاء التشغيل</th>
                         <th scope="col" className="px-4 py-3">الباركود</th>
                         <th scope="col" className="px-4 py-3">الموديل</th>
-                        <th scope="col" className="px-4 py-3">القماش</th>
+                        <th scope="col" className="px-4 py-3">الصنف</th>
                         <th scope="col" className="px-4 py-3">اللون</th>
                         <th scope="col" className="px-4 py-3">المقاس</th>
                         <th scope="col" className="px-4 py-3">الفئة</th>
@@ -214,7 +214,7 @@ const ReportsPage: React.FC = () => {
                             <td className="px-4 py-4">{report.endDate}</td>
                             <td className="px-4 py-4">{getNameById('barcode', report.barcodeId)}</td>
                             <td className="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">{getNameById('model', report.modelId)}</td>
-                            <td className="px-4 py-4">{getNameById('fabric', report.fabricId)}</td>
+                            <td className="px-4 py-4">{getNameById('item', report.itemId)}</td>
                             <td className="px-4 py-4">{getNameById('color', report.colorId)}</td>
                             <td className="px-4 py-4">{getNameById('size', report.sizeId)}</td>
                             <td className="px-4 py-4">{getNameById('category', report.categoryId)}</td>

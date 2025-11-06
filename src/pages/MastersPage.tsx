@@ -4,19 +4,19 @@ import Button from '../components/Button';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Plus, Edit, Trash2, Printer, Download } from 'lucide-react';
-import type { Color, Model, MaterialType, Barcode, Fabric, Size, Category, Season } from '../types';
+import type { Color, Model, MaterialType, Barcode, Item, Size, Category, Season } from '../types';
 import { exportToExcel } from '../utils/export';
 import PrintWrapper from '../components/PrintWrapper';
 
-type MasterType = 'colors' | 'models' | 'materialTypes' | 'barcodes' | 'fabrics' | 'sizes' | 'categories' | 'seasons' | 'users';
-type Item = Color | Model | MaterialType | Barcode | Fabric | Size | Category | Season;
+type MasterType = 'colors' | 'models' | 'materialTypes' | 'barcodes' | 'items' | 'sizes' | 'categories' | 'seasons' | 'users';
+type MasterItem = Color | Model | MaterialType | Barcode | Item | Size | Category | Season;
 
 const masterConfig: {
     colors: { title: string; fields: (keyof Color)[], prefix: string };
     models: { title: string; fields: (keyof Model)[], prefix: string };
     materialTypes: { title: string; fields: (keyof MaterialType)[], prefix: string };
     barcodes: { title: string; fields: (keyof Barcode)[], prefix: string };
-    fabrics: { title: string; fields: (keyof Fabric)[], prefix: string };
+    items: { title: string; fields: (keyof Item)[], prefix: string };
     sizes: { title: string; fields: (keyof Size)[], prefix: string };
     categories: { title: string; fields: (keyof Category)[], prefix: string };
     seasons: { title: string; fields: (keyof Season)[], prefix: string };
@@ -25,7 +25,7 @@ const masterConfig: {
     models: { title: 'الموديلات', fields: ['id', 'name', 'description'], prefix: 'M' },
     materialTypes: { title: 'أنواع المواد', fields: ['id', 'name'], prefix: 'MT' },
     barcodes: { title: 'الباركودات', fields: ['id', 'name', 'modelId'], prefix: 'B' },
-    fabrics: { title: 'الأقمشة', fields: ['id', 'name', 'type', 'notes'], prefix: 'F' },
+    items: { title: 'الأصناف', fields: ['id', 'name', 'type', 'notes'], prefix: 'I' },
     sizes: { title: 'المقاسات', fields: ['id', 'name'], prefix: 'S' },
     categories: { title: 'الفئات', fields: ['id', 'name'], prefix: 'CAT' },
     seasons: { title: 'المواسم', fields: ['id', 'name'], prefix: 'SE' },
@@ -35,10 +35,10 @@ const MasterEditor: React.FC<{ type: MasterType }> = ({ type }) => {
     const { data, addOrUpdateItem, deleteItem } = useData();
     const { currentUser } = useAuth();
     const permissions = currentUser?.permissions;
-    const items = data[type as keyof typeof masterConfig] as Item[];
+    const items = data[type as keyof typeof masterConfig] as MasterItem[];
     const { title, fields, prefix } = masterConfig[type as keyof typeof masterConfig];
 
-    const [currentItem, setCurrentItem] = useState<Partial<Item>>({});
+    const [currentItem, setCurrentItem] = useState<Partial<MasterItem>>({});
     const [isEditing, setIsEditing] = useState(false);
     const [isPrinting, setIsPrinting] = useState(false);
 
@@ -80,13 +80,13 @@ const MasterEditor: React.FC<{ type: MasterType }> = ({ type }) => {
             idToSave = `${prefix}${(maxId + 1).toString().padStart(3, '0')}`;
         }
         
-        const finalItem = { ...currentItem, id: idToSave, name: currentItem.name } as Item;
+        const finalItem = { ...currentItem, id: idToSave, name: currentItem.name } as MasterItem;
         addOrUpdateItem(type as any, finalItem);
         setCurrentItem({});
         setIsEditing(false);
     };
     
-    const handleEdit = (item: Item) => {
+    const handleEdit = (item: MasterItem) => {
         setCurrentItem(item);
         setIsEditing(true);
     };
@@ -191,7 +191,7 @@ const MastersPage: React.FC = () => {
     const tabs: { key: MasterType, label: string }[] = [
         { key: 'colors', label: 'الألوان' },
         { key: 'models', label: 'الموديلات' },
-        { key: 'fabrics', label: 'الأقمشة' },
+        { key: 'items', label: 'الأصناف' },
         { key: 'sizes', label: 'المقاسات' },
         { key: 'categories', label: 'الفئات' },
         { key: 'seasons', label: 'المواسم' },

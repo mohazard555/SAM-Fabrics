@@ -8,11 +8,11 @@ import { exportToExcel } from '../utils/export';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import PrintWrapper from '../components/PrintWrapper';
 
-type GroupingKey = 'materialTypeId' | 'modelId' | 'colorId' | 'barcodeId' | 'fabricId' | 'sizeId' | 'categoryId' | 'seasonId' | 'reportDate';
+type GroupingKey = 'materialTypeId' | 'modelId' | 'colorId' | 'barcodeId' | 'itemId' | 'sizeId' | 'categoryId' | 'seasonId' | 'reportDate';
 
 const AdvancedReportsPage: React.FC = () => {
     const { data } = useData();
-    const { dailyReports, colors, models, materialTypes, fabrics, barcodes, sizes, categories, seasons } = data;
+    const { dailyReports, colors, models, materialTypes, items, barcodes, sizes, categories, seasons } = data;
 
     const initialFilters = {
         dateFrom: '',
@@ -20,7 +20,7 @@ const AdvancedReportsPage: React.FC = () => {
         barcodeId: '',
         modelId: '',
         colorId: '',
-        fabricId: '',
+        itemId: '',
         sizeId: '',
         categoryId: '',
         seasonId: '',
@@ -43,7 +43,7 @@ const AdvancedReportsPage: React.FC = () => {
     const getNameById = (type: string, id: string) => {
         const pluralMap: Record<string, string> = {
             'materialType': 'materialTypes', 'model': 'models', 'color': 'colors',
-            'barcode': 'barcodes', 'fabric': 'fabrics', 'size': 'sizes',
+            'barcode': 'barcodes', 'item': 'items', 'size': 'sizes',
             'category': 'categories', 'season': 'seasons',
         };
         const collectionName = pluralMap[type];
@@ -59,7 +59,7 @@ const AdvancedReportsPage: React.FC = () => {
             if (filters.barcodeId && report.barcodeId !== filters.barcodeId) return false;
             if (filters.modelId && report.modelId !== filters.modelId) return false;
             if (filters.colorId && report.colorId !== filters.colorId) return false;
-            if (filters.fabricId && report.fabricId !== filters.fabricId) return false;
+            if (filters.itemId && report.itemId !== filters.itemId) return false;
             if (filters.sizeId && report.sizeId !== filters.sizeId) return false;
             if (filters.categoryId && report.categoryId !== filters.categoryId) return false;
             if (filters.seasonId && report.seasonId !== filters.seasonId) return false;
@@ -112,7 +112,7 @@ const AdvancedReportsPage: React.FC = () => {
 
     const masterLabels: Record<GroupingKey, string> = {
         modelId: 'الموديل', materialTypeId: 'نوع المادة', colorId: 'اللون',
-        barcodeId: 'الباركود', fabricId: 'القماش', sizeId: 'المقاس',
+        barcodeId: 'الباركود', itemId: 'الصنف', sizeId: 'المقاس',
         categoryId: 'الفئة', seasonId: 'الموسم', reportDate: 'تاريخ التقرير',
     };
 
@@ -131,7 +131,7 @@ const AdvancedReportsPage: React.FC = () => {
     const handleExportDetails = () => {
         const dataToExport = filteredReports.map(report => ({
             'تاريخ التقرير': report.reportDate, 'الموديل': getNameById('model', report.modelId),
-            'الباركود': getNameById('barcode', report.barcodeId), 'القماش': getNameById('fabric', report.fabricId),
+            'الباركود': getNameById('barcode', report.barcodeId), 'الصنف': getNameById('item', report.itemId),
             'اللون': getNameById('color', report.colorId), 'المقاس': getNameById('size', report.sizeId),
             'الفئة': getNameById('category', report.categoryId), 'الموسم': getNameById('season', report.seasonId),
             'المواد المستخدمة': (report.materialsUsed || []).map(m => `${getNameById('materialType', m.materialTypeId)}: ${m.quantityUsed} متر`).join(' | '),
@@ -191,7 +191,7 @@ const AdvancedReportsPage: React.FC = () => {
                             <th className="px-2 py-2">انتهاء التشغيل</th>
                             <th className="px-2 py-2">الباركود</th>
                             <th className="px-2 py-2">الموديل</th>
-                            <th className="px-2 py-2">القماش</th>
+                            <th className="px-2 py-2">الصنف</th>
                             <th className="px-2 py-2">اللون</th>
                             <th className="px-2 py-2">المقاس</th>
                             <th className="px-2 py-2">الفئة</th>
@@ -210,7 +210,7 @@ const AdvancedReportsPage: React.FC = () => {
                                 <td className="px-2 py-2">{r.endDate}</td>
                                 <td className="px-2 py-2">{getNameById('barcode', r.barcodeId)}</td>
                                 <td className="px-2 py-2">{getNameById('model', r.modelId)}</td>
-                                <td className="px-2 py-2">{getNameById('fabric', r.fabricId)}</td>
+                                <td className="px-2 py-2">{getNameById('item', r.itemId)}</td>
                                 <td className="px-2 py-2">{getNameById('color', r.colorId)}</td>
                                 <td className="px-2 py-2">{getNameById('size', r.sizeId)}</td>
                                 <td className="px-2 py-2">{getNameById('category', r.categoryId)}</td>
@@ -249,7 +249,7 @@ const AdvancedReportsPage: React.FC = () => {
                             <div><label className={labelClass}>الباركود</label><select name="barcodeId" value={filters.barcodeId} onChange={handleFilterChange} className={selectClass}><option value="">الكل</option>{barcodes.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></div>
                             <div><label className={labelClass}>الموديل</label><select name="modelId" value={filters.modelId} onChange={handleFilterChange} className={selectClass}><option value="">الكل</option>{models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>
                             <div><label className={labelClass}>اللون</label><select name="colorId" value={filters.colorId} onChange={handleFilterChange} className={selectClass}><option value="">الكل</option>{colors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-                            <div><label className={labelClass}>القماش</label><select name="fabricId" value={filters.fabricId} onChange={handleFilterChange} className={selectClass}><option value="">الكل</option>{fabrics.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
+                            <div><label className={labelClass}>الصنف</label><select name="itemId" value={filters.itemId} onChange={handleFilterChange} className={selectClass}><option value="">الكل</option>{items.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
                             <div><label className={labelClass}>المقاس</label><select name="sizeId" value={filters.sizeId} onChange={handleFilterChange} className={selectClass}><option value="">الكل</option>{sizes.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
                             <div><label className={labelClass}>الفئة</label><select name="categoryId" value={filters.categoryId} onChange={handleFilterChange} className={selectClass}><option value="">الكل</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
                             <div><label className={labelClass}>الموسم</label><select name="seasonId" value={filters.seasonId} onChange={handleFilterChange} className={selectClass}><option value="">الكل</option>{seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>

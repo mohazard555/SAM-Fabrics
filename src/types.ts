@@ -21,7 +21,7 @@ export interface Barcode {
   modelId?: string;
 }
 
-export interface Fabric {
+export interface Item {
   id:string;
   name: string;
   type: string;
@@ -54,7 +54,7 @@ export interface DailyReport {
   startDate: string;
   endDate: string;
   materialsUsed: MaterialUsage[];
-  fabricId: string;
+  itemId: string;
   colorId: string;
   modelId: string;
   barcodeId: string;
@@ -94,7 +94,7 @@ export interface AppData {
   models: Model[];
   materialTypes: MaterialType[];
   barcodes: Barcode[];
-  fabrics: Fabric[];
+  items: Item[];
   sizes: Size[];
   categories: Category[];
   seasons: Season[];

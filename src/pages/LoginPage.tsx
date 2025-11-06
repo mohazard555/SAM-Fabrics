@@ -32,7 +32,7 @@ const LoginPage: React.FC = () => {
             <Database className="text-white h-10 w-10" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">SAM Pro</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">نظام إدارة تكاليف الأقمشة</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">نظام إدارة تكاليف الأصناف</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
